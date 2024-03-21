@@ -1,1 +1,3 @@
-<p>vulnerabilities works!</p>
+<div *ngFor = "let package of packages">
+    <p>{{ package.packageName }}: {{ package.currentVer }}</p>
+</div>
