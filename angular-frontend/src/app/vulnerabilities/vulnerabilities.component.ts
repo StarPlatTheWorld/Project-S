@@ -19,7 +19,7 @@ export class VulnerabilitiesComponent {
   }
 
   getPackages() {
-    this.http.get<any[]>('http://localhost:5000/vulnerabilities').subscribe(data => {
+    this.http.get<any[]>('http://localhost:5000/api/packages').subscribe(data => {
       this.packages = data;
     });
   }

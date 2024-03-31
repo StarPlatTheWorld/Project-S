@@ -1,1 +1,9 @@
 /* You can add global styles to this file, and also import other style files */
+.navbar {
+    background-color: #BDE3FF;
+}
+
+.navbar-nav.custom-ms-auto {
+    margin-left: auto;
+    margin-right: 50px;
+}

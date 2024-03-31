@@ -13,6 +13,9 @@ export const routes: Routes = [
         path: "results", component: ScanResultsComponent
     },
     {
-        path: "vulnerabilities", component: VulnerabilitiesComponent
+        path: "packages", component: VulnerabilitiesComponent
+    },
+    {
+        path: "**", redirectTo: ""
     }
 ];

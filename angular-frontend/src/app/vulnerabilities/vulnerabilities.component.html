@@ -1,3 +1,7 @@
-<div *ngFor = "let package of packages">
-    <p>{{ package.packageName }}: {{ package.currentVer }}</p>
+<div>
+    @for (package of packages; track package.packageName) {
+        <p>{{ package.packageName }} : {{ package.currentVer }}</p>
+    } @empty {
+        <li>There are no current packages available</li>
+    }
 </div>
