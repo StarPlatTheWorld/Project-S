@@ -1,3 +1,10 @@
-#indexGreetings {
+.introText {
     text-align: center;
+}
+
+.centerLogo {
+    display: block;
+    margin: auto;
+    width: 6rem;
+    height: 6rem;
 }

@@ -2,13 +2,22 @@
 from flask import Flask, jsonify, request, make_response
 from pymongo import MongoClient
 import json
+from functools import wraps
 from flask_cors import CORS
 from bson import ObjectId
 from werkzeug.utils import secure_filename
+from config import Config
 import os
 
-# --- Initialises the Flask app instance and applies CORS to all endpoints. ---
+# --- Initialises the Flask app instance ---
 app = Flask(__name__)
+
+# --- Sets up configuration from an object, that has been imported from a separate config file --- 
+app.config.from_object(Config)
+
+# --- Retrieves secret key from ---
+secret_key = app.config['SECRET_KEY']
+
 # --- CORS is an additional extension for Flask. This allows for Cross-Origin Resource Sharing, which allows the back-end API to interact with the front-end application, and vice versa. ---
 CORS(app)
 
@@ -29,6 +38,27 @@ package_collection = db["packages"]
 @app.route("/api/", methods = ['GET'])
 def index():
     return jsonify()
+
+# --- Adding New Vulnerabilities/Packages API route. ---
+@app.route("/api/packages", methods = ['POST'])
+def add_package():
+    if "packageName" in request.form:
+        new_package = {
+            "packageName": request.form["packageName"]
+        }
+        package_collection.insert_one(new_package)
+    return make_response( jsonify({"message": "New Package added successfully."}), 201)
+
+# @app.route("/api/upload", methods = ['POST'])
+# def upload_file():
+#     file = request.files['file']
+#     if file.filename == '':
+#         return jsonify({'error': 'No file selected'}), 400
+#     if file:
+#         data = json.load(file)
+#         packages = [package for package in data.get('dependencies', {}).keys()]
+#         matching_packages = package_collection.find(packages)
+#         return jsonify({'matching_packages': matching_packages}), 200
 
 # @app.route("/api/upload", methods = ['POST'])
 # def upload_file():
