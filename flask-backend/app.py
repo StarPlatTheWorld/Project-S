@@ -2,6 +2,9 @@
 from flask import Flask, jsonify, request, make_response
 from pymongo import MongoClient
 import json
+import jwt
+import bcrypt
+import datetime
 from functools import wraps
 from flask_cors import CORS
 from bson import ObjectId
@@ -15,7 +18,7 @@ app = Flask(__name__)
 # --- Sets up configuration from an object, that has been imported from a separate config file --- 
 app.config.from_object(Config)
 
-# --- Retrieves secret key from ---
+# --- Retrieves secret key from our config file and assigns it to variable ---
 secret_key = app.config['SECRET_KEY']
 
 # --- CORS is an additional extension for Flask. This allows for Cross-Origin Resource Sharing, which allows the back-end API to interact with the front-end application, and vice versa. ---
@@ -29,13 +32,49 @@ CORS(app)
 client = MongoClient("localhost", 27017)
 db = client["ProjectS"]
 package_collection = db["packages"]
+staffList_collection = db["staffList"]
+
+staff = [
+    {
+        "name": "Ethan",
+        "username": "McFarlaneE1",
+        "password": b"mcfar_1",
+        "admin": True
+    },
+    {
+        "name": "Ethan",
+        "username": "McFarlaneE2",
+        "password": b"mcfar_2",
+        "admin": False
+    }
+]
+
+for new_staff_member in staff:
+    new_staff_member["password"] = bcrypt.hashpw(new_staff_member["password"], \
+    bcrypt.gensalt())
+    staffList_collection.insert_one(new_staff_member)
 
 # def allowed_file_types(filename):
 #     return '.' in filename and \
 #             filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# --- Sets up an authorization token utilising JWT. This generates a token for users trying to login
+
+# --- Sets up an admin wrapper utilising JWT. This allows certain API routes to only be accessed by those who have administrator privileges. ---
+def administrator_require(func):
+    @wraps(func)
+    def administrator_wrapper(*args, **kwargs):
+        token = request.headers['x-access-token']
+        data = jwt.decode(token, secret_key, algorithms=['HS256'])
+        if data['admin']:
+            return func(*args, **kwargs)
+        else:
+            return make_response(jsonify({'message': 'Admin Access is required.'}), 401)
+    return administrator_wrapper
+
 # --- The Index API route. ---
 @app.route("/api/", methods = ['GET'])
+@administrator_require
 def index():
     return jsonify()
 
@@ -97,6 +136,28 @@ def get_packList():
         package['_id'] = str(package['_id'])
 
     return jsonify(packages)
+
+# --- Login API route. ---
+@app.route('/api/login', methods = ['GET'])
+def login():
+    auth = request.authorization
+    if auth:
+        user = staffList_collection.find_one({'username': auth.username})
+        if user is not None:
+            if bcrypt.checkpw(bytes(auth.password, 'UTF-8'), \
+                              user['password']):
+                token = jwt.encode( \
+                    {'user': auth.username,
+                     'admin': user['admin'],
+                     'exp': datetime.datetime.utcnow() + \
+                        datetime.timedelta(minutes=30)
+                        }, secret_key)
+                return make_response(jsonify({'token': token}), 200)
+            else:
+                return make_response(jsonify({'message': 'Bad Password'}), 401)
+        else:
+            return make_response(jsonify({'message': 'Bad Username'}), 401)
+    return make_response(jsonify({'message': 'Authentication is REQUIRED to access this route.'}), 401)
 
 # --- IF statement to allow the app to run with debug mode enabled when __name__ == __main__. 
 if __name__ == "__main__":
