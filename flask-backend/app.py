@@ -58,23 +58,28 @@ for new_staff_member in staff:
 #     return '.' in filename and \
 #             filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# --- Sets up an authorization token utilising JWT. This generates a token for users trying to login
-
-# --- Sets up an admin wrapper utilising JWT. This allows certain API routes to only be accessed by those who have administrator privileges. ---
-def administrator_require(func):
+# --- Sets up an authorization token utilising JWT. This generates a token for users trying to login to protected API routes. If no token is present, an error message with the 401 status code will be displayed. If a token is present, it will decode it using the token, secret key and the HS256 algorithm. If an invalid token has been used, an error message with a 401 status code will be displayed. If the token matches an administrator account, it will be given access to the API route, else it will provide an error message stating that an administrator account is required to proceed. --- 
+def administrator_required(func):
     @wraps(func)
-    def administrator_wrapper(*args, **kwargs):
-        token = request.headers['x-access-token']
-        data = jwt.decode(token, secret_key, algorithms=['HS256'])
-        if data['admin']:
-            return func(*args, **kwargs)
-        else:
-            return make_response(jsonify({'message': 'Admin Access is required.'}), 401)
-    return administrator_wrapper
+    def administrator_required_wrapper(*args, **kwargs):
+        token = None
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+        if not token:
+            return jsonify({'message': 'Token is missing. Please assign a token.'}), 401
+        try:
+            data = jwt.decode(token, secret_key, algorithms=['HS256'])
+            if data['admin']:
+                return func(*args, **kwargs)
+            else:
+                return make_response(jsonify({'message': 'Admin Access is required to proceed. Please verify with an Admin account.'}), 401)
+        except:
+            return jsonify({'message': 'Token is invalid. Please provide a valid token.'}), 401
+    return administrator_required_wrapper
 
 # --- The Index API route. ---
 @app.route("/api/", methods = ['GET'])
-@administrator_require
+@administrator_required
 def index():
     return jsonify()
 
