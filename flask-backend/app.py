@@ -86,12 +86,22 @@ def index():
 # --- Adding New Vulnerabilities/Packages API route. ---
 @app.route("/api/packages", methods = ['POST'])
 def add_package():
-    if "packageName" in request.form:
+    if "packageName" in request.form and \
+        "currentVer" in request.form and \
+        "threatLevel" in request.form and \
+        "vulnerableVersions" in request.form and \
+        "vulnerability" in request.form:
         new_package = {
-            "packageName": request.form["packageName"]
+            "packageName": request.form["packageName"],
+            "currentVer": request.form["currentVer"],
+            "threatLevel": request.form["threatLevel"],
+            "vulnerableVersions": request.form["vulnerableVersions"],
+            "vulnerability": request.form["vulnerability"]
         }
         package_collection.insert_one(new_package)
-    return make_response( jsonify({"message": "New Package added successfully."}), 201)
+        return make_response( jsonify({"message": "New Package added successfully."}), 201)
+    else:
+        return make_response(jsonify({'error': "Form data is incomplete or ran into an error. Please verify the information you entered is correct and try again."}), 404)
 
 # @app.route("/api/upload", methods = ['POST'])
 # def upload_file():
