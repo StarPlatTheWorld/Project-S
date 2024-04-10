@@ -86,33 +86,27 @@ def index():
 # --- Adding New Vulnerabilities/Packages API route. ---
 @app.route("/api/packages", methods = ['POST'])
 def add_package():
-    if "packageName" in request.form and \
-        "currentVer" in request.form and \
-        "threatLevel" in request.form and \
-        "vulnerableVersions" in request.form and \
-        "vulnerability" in request.form:
+    valid_package_fields = ['packageName', 'currentVer', 'threatLevel', 'vulnerableVersions', 'vulnerability']
+    if all([field in request.form for field in valid_package_fields]):
         new_package = {
-            "packageName": request.form["packageName"],
-            "currentVer": request.form["currentVer"],
-            "threatLevel": request.form["threatLevel"],
-            "vulnerableVersions": request.form["vulnerableVersions"],
-            "vulnerability": request.form["vulnerability"]
+            field: request.form[field] for field in valid_package_fields
         }
         package_collection.insert_one(new_package)
         return make_response( jsonify({"message": "New Package added successfully."}), 201)
     else:
         return make_response(jsonify({'error': "Form data is incomplete or ran into an error. Please verify the information you entered is correct and try again."}), 404)
+    
+# --- Editing Existing Vulnerabilities/Packages API route. ---
+@app.route("/api/packages/<string:id>", methods = ['PUT'])
+@administrator_required
+def edit_package(id):
+    edited_package_fields = ['packageName', 'vulnerability']
+    if all ([field in request.form for field in edited_package_fields]):
+        edited_package = package_collection.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": {field: request.form[field] for field in edited_package_fields}}
+        )
 
-# @app.route("/api/upload", methods = ['POST'])
-# def upload_file():
-#     file = request.files['file']
-#     if file.filename == '':
-#         return jsonify({'error': 'No file selected'}), 400
-#     if file:
-#         data = json.load(file)
-#         packages = [package for package in data.get('dependencies', {}).keys()]
-#         matching_packages = package_collection.find(packages)
-#         return jsonify({'matching_packages': matching_packages}), 200
 
 # @app.route("/api/upload", methods = ['POST'])
 # def upload_file():
