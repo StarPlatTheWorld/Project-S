@@ -106,6 +106,9 @@ def edit_package(id):
             {"_id": ObjectId(id)},
             {"$set": {field: request.form[field] for field in edited_package_fields}}
         )
+        return make_response( jsonify({'message': 'Package edited successfully.'}), 200)
+    else:
+        return make_response( jsonify({'error': 'Package could not be found, please ensure you entered the correct information.'}), 404)
 
 
 # @app.route("/api/upload", methods = ['POST'])
