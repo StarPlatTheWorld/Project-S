@@ -62,17 +62,24 @@ for new_staff_member in staff:
 def administrator_required(func):
     @wraps(func)
     def administrator_required_wrapper(*args, **kwargs):
+        # Sets the existing token to None.
         token = None
+        # If 'x-access-token' exists within request.headers, then assign that value to variable token.
         if 'x-access-token' in request.headers:
             token = request.headers['x-access-token']
+        # If no token is present, then throw an error that a token is missing.
         if not token:
             return jsonify({'message': 'Token is missing. Please assign a token.'}), 401
+        # Takes the token that has been saved above, verifies and decodes it utilising the secret key provided, and specifies the usage of the HS256 algorithm to decode the token.
         try:
             data = jwt.decode(token, secret_key, algorithms=['HS256'])
+            # If the data matches an administrator account, then pass positional arguments utilising *args and keyword arguments utilisng **kwargs.
             if data['admin']:
                 return func(*args, **kwargs)
+            # Else, return a response that states that Admin access is required and that the user must provide administrator details.
             else:
                 return make_response(jsonify({'message': 'Admin Access is required to proceed. Please verify with an Admin account.'}), 401)
+        # Creates an exception, based on if the token has become invalid after it's validity timer has expired.
         except:
             return jsonify({'message': 'Token is invalid. Please provide a valid token.'}), 401
     return administrator_required_wrapper
@@ -108,7 +115,25 @@ def edit_package(id):
         )
         return make_response( jsonify({'message': 'Package edited successfully.'}), 200)
     else:
-        return make_response( jsonify({'error': 'Package could not be found, please ensure you entered the correct information.'}), 404)
+        return make_response( jsonify({'error': 'Package could not be found, please ensure you entered the correct package information.'}), 404)
+    
+# --- Deleting Existing Vulnerabilities/Packages API route. ---
+@app.route("/api/packages/<string:id>", methods = ['DELETE'])
+@administrator_required
+def delete_package(id):
+    # Creates a variable called selected_package and uses a mongodb query to find a document within the collection with the specified id.
+    selected_package = package_collection.find_one({'_id': ObjectId(id)})
+    # If the id does not match an id within the database, then an error will be thrown stating that the package could not be found.
+    if not selected_package:
+        return make_response( jsonify({'error': 'Package could not be found. Please ensure that the information provided is correct.'}), 404)
+    # A standard mongodb query to delete a document within a collection based on the id provided within the url.
+    deleted_package = package_collection.delete_one({'_id': ObjectId(id)})
+    # An if statement that checks if exactly one document has been deleted from the database.
+    if deleted_package.deleted_count == 1:
+        return make_response( jsonify({'message': 'Package has been deleted successfully.'}), 200)
+    # Otherwise, throw an error to state that the package has not been deleted and to ensure that the information provided is correct.
+    else:
+        return make_response( jsonify({'error': 'Failed to delete package. Please ensure that the information provided is correct.'}), 500)
 
 
 # @app.route("/api/upload", methods = ['POST'])
@@ -133,11 +158,6 @@ def edit_package(id):
 #         return jsonify({'message': 'Your file has been uploaded sucessfully', 'results': scan_results}), 200
 #     else:
 #         return jsonify({'error': 'Invalid file extension. Please choose .txt or .json'}), 400
-
-# --- The Scan Results API route. ---
-@app.route("/api/results")
-def scanResults():
-    return jsonify()
 
 # --- The Package List API route. ---
 @app.route("/api/packages", methods = ['GET'])
