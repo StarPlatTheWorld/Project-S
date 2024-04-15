@@ -58,7 +58,7 @@ for new_staff_member in staff:
 #     return '.' in filename and \
 #             filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# --- Sets up an authorization token utilising JWT. This generates a token for users trying to login to protected API routes. If no token is present, an error message with the 401 status code will be displayed. If a token is present, it will decode it using the token, secret key and the HS256 algorithm. If an invalid token has been used, an error message with a 401 status code will be displayed. If the token matches an administrator account, it will be given access to the API route, else it will provide an error message stating that an administrator account is required to proceed. --- 
+# --- Sets up an authorization token utilising JWT. This generates a token for users trying to login to protected API routes. --- 
 def administrator_required(func):
     @wraps(func)
     def administrator_required_wrapper(*args, **kwargs):
@@ -93,13 +93,18 @@ def index():
 # --- Adding New Vulnerabilities/Packages API route. ---
 @app.route("/api/packages", methods = ['POST'])
 def add_package():
+    # Creates an array of field names from the database and assigns them to the variable valid_package_fields
     valid_package_fields = ['packageName', 'currentVer', 'threatLevel', 'vulnerableVersions', 'vulnerability']
+    # If statement to check if all the fields exist within the request.form instance.
     if all([field in request.form for field in valid_package_fields]):
+        # If all the field names are present, insert the new_package function into the collection within the database.
         new_package = {
             field: request.form[field] for field in valid_package_fields
         }
         package_collection.insert_one(new_package)
+        # Return a response that the new package was added successfully, along with a 201 status code.
         return make_response( jsonify({"message": "New Package added successfully."}), 201)
+    # Else, return a response that the form data was incomplete or ran into an error, and to verify that all information was entered and is correct. Also, return a 404 status code.
     else:
         return make_response(jsonify({'error': "Form data is incomplete or ran into an error. Please verify the information you entered is correct and try again."}), 404)
     
@@ -107,13 +112,18 @@ def add_package():
 @app.route("/api/packages/<string:id>", methods = ['PUT'])
 @administrator_required
 def edit_package(id):
+    # Creates an array of field names from the database and assigns them to the variable edited_package_fields
     edited_package_fields = ['packageName', 'vulnerability']
+    # If state to check if all the fields exist within the request.form instance
     if all ([field in request.form for field in edited_package_fields]):
+        # If all fields exist, then update the package with the following form information.
         edited_package = package_collection.update_one(
             {"_id": ObjectId(id)},
             {"$set": {field: request.form[field] for field in edited_package_fields}}
         )
+        # Return and make a response with the success message 'Package edited successfully' and the 200 status code.
         return make_response( jsonify({'message': 'Package edited successfully.'}), 200)
+    # Else, make a response that there was an error and that the package could not be found and a status code of 404.
     else:
         return make_response( jsonify({'error': 'Package could not be found, please ensure you entered the correct package information.'}), 404)
     
