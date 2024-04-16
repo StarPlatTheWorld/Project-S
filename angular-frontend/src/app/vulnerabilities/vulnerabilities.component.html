@@ -1,7 +1,13 @@
-<div>
-    @for (package of packages; track package.packageName) {
-        <p>{{ package.packageName }} : {{ package.currentVer }}</p>
-    } @empty {
-        <li>There are no current packages available</li>
-    }
+<div class="container text-center" id="package-container">
+    <div class="row align-items-start">
+        @for (package of packages; track package.packageName) {
+            <div class="col-sm-4">
+                <div class="card" id="package-card-body">
+                    <img src="{{ package.packageIcon }}">
+                </div>
+            </div>
+        } @empty {
+            <li>There are no current packages available</li>
+        }
+    </div>
 </div>
