@@ -94,12 +94,19 @@ def index():
 @app.route("/api/packages", methods = ['POST'])
 def add_package():
     # Creates an array of field names from the database and assigns them to the variable valid_package_fields
-    valid_package_fields = ['packageName', 'currentVer', 'threatLevel', 'vulnerableVersions', 'vulnerability']
+    valid_package_fields = ['packageName', 'currentVer', 'threatLevel', 'vulnerableVersions', 'vulnerability', 'packageIcon']
     # If statement to check if all the fields exist within the request.form instance.
     if all([field in request.form for field in valid_package_fields]):
-        # If all the field names are present, insert the new_package function into the collection within the database.
+        # Creates a variable called threat_level_string and assigns it the value of a string from the request.form action, specifying the threatLevel field.
+        threat_level_string = request.form['threatLevel']
+        # If state to validate if the variable above is not a digit. If it is not a digit, make a response and throw an error stating that threatLevel field must be an integer.
+        if not threat_level_string.isdigit():
+            return make_response( jsonify({'error': 'Please ensure that you enter an integer for the threat level field.'}), 400)
+        # Converts the threat_level_string variable to an integer and assigns it to the variable threat_level
+        threat_level = int(threat_level_string)
+        # If all the field names are present and have the correct information and data type, insert the new_package function into the collection within the database. This also ensures that the threatLevel field is entered as an integer and the vulnerableVersions field is entered as an array.
         new_package = {
-            field: request.form[field] for field in valid_package_fields
+            field: threat_level if field == 'threatLevel' else (request.form.getlist(field) if field == 'vulnerableVersions' else request.form[field]) for field in valid_package_fields
         }
         package_collection.insert_one(new_package)
         # Return a response that the new package was added successfully, along with a 201 status code.
