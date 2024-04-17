@@ -9,7 +9,7 @@ from functools import wraps
 from flask_cors import CORS
 from bson import ObjectId
 from werkzeug.utils import secure_filename
-from config import Config
+from config import Config, staff
 import os
 
 # --- Initialises the Flask app instance ---
@@ -34,22 +34,9 @@ db = client["ProjectS"]
 package_collection = db["packages"]
 staffList_collection = db["staffList"]
 
-staff = [
-    {
-        "name": "Ethan",
-        "username": "McFarlaneE1",
-        "password": b"mcfar_1",
-        "admin": True
-    },
-    {
-        "name": "Ethan",
-        "username": "McFarlaneE2",
-        "password": b"mcfar_2",
-        "admin": False
-    }
-]
+staffList = staff
 
-for new_staff_member in staff:
+for new_staff_member in staffList:
     new_staff_member["password"] = bcrypt.hashpw(new_staff_member["password"], \
     bcrypt.gensalt())
     staffList_collection.insert_one(new_staff_member)
