@@ -10,7 +10,7 @@ export const routes: Routes = [
         path: "", component: IndexComponent
     },
     {
-        path: "results", component: ScanResultsComponent
+        path: "scan", component: ScanResultsComponent
     },
     {
         path: "packages", component: VulnerabilitiesComponent

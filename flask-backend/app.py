@@ -18,11 +18,11 @@ app = Flask(__name__)
 # --- Sets up configuration from an object, that has been imported from a separate config file --- 
 app.config.from_object(Config)
 
-# --- Retrieves secret key from our config file and assigns it to variable ---
-secret_key = app.config['SECRET_KEY']
-
 # --- CORS is an additional extension for Flask. This allows for Cross-Origin Resource Sharing, which allows the back-end API to interact with the front-end application, and vice versa. ---
 CORS(app)
+
+# --- Retrieves secret key from our config file and assigns it to variable ---
+secret_key = app.config['SECRET_KEY']
 
 # UPLOAD_FOLDER = 'uploads'
 # app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -44,6 +44,9 @@ for new_staff_member in staffList:
 # def allowed_file_types(filename):
 #     return '.' in filename and \
 #             filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Defines a list of valid package field names for the use in the add package endpoint
+VALID_FIELDS = ['packageName', 'currentVer', 'threatLevel', 'vulnerableVersions', 'vulnerability']
 
 # --- Sets up an authorization token utilising JWT. This generates a token for users trying to login to protected API routes. --- 
 def administrator_required(func):
@@ -73,35 +76,37 @@ def administrator_required(func):
 
 # --- The Index API route. ---
 @app.route("/api/", methods = ['GET'])
-@administrator_required
 def index():
-    return jsonify()
-
-# --- Adding New Vulnerabilities/Packages API route. ---
-@app.route("/api/packages", methods = ['POST'])
-def add_package():
-    # Creates an array of field names from the database and assigns them to the variable valid_package_fields
-    valid_package_fields = ['packageName', 'currentVer', 'threatLevel', 'vulnerableVersions', 'vulnerability', 'packageIcon']
-    # If statement to check if all the fields exist within the request.form instance.
-    if all([field in request.form for field in valid_package_fields]):
-        # Creates a variable called threat_level_string and assigns it the value of a string from the request.form action, specifying the threatLevel field.
-        threat_level_string = request.form['threatLevel']
-        # If state to validate if the variable above is not a digit. If it is not a digit, make a response and throw an error stating that threatLevel field must be an integer.
-        if not threat_level_string.isdigit():
-            return make_response( jsonify({'error': 'Please ensure that you enter an integer for the threat level field.'}), 400)
-        # Converts the threat_level_string variable to an integer and assigns it to the variable threat_level
-        threat_level = int(threat_level_string)
-        # If all the field names are present and have the correct information and data type, insert the new_package function into the collection within the database. This also ensures that the threatLevel field is entered as an integer and the vulnerableVersions field is entered as an array.
-        new_package = {
-            field: threat_level if field == 'threatLevel' else (request.form.getlist(field) if field == 'vulnerableVersions' else request.form[field]) for field in valid_package_fields
-        }
-        package_collection.insert_one(new_package)
-        # Return a response that the new package was added successfully, along with a 201 status code.
-        return make_response( jsonify({"message": "New Package added successfully."}), 201)
-    # Else, return a response that the form data was incomplete or ran into an error, and to verify that all information was entered and is correct. Also, return a 404 status code.
-    else:
-        return make_response(jsonify({'error': "Form data is incomplete or ran into an error. Please verify the information you entered is correct and try again."}), 404)
+    return make_response( jsonify({"message": "Welcome to Project-S"}), 200)
     
+# --- Adding Package to Database API route. ---
+@app.route('/api/add_package', methods = ['POST'])
+def add_package():
+    # Receives the incoming data as JSON
+    data = request.json
+    # If all fields from incoming data match fields in VALID_FIELDS
+    # and if vulnerableVersions is of type string then access
+    # the vulnerableVersions field of data, and splits the values
+    # into an array with a delimiter of a comma.
+    if all(field in data for field in VALID_FIELDS):
+        if isinstance(data['vulnerableVersions'], str):
+            data['vulnerableVersions'] = data['vulnerableVersions'].split(',')
+        # Inserts the JSON data into the package_collection of the
+        # MongoDB database.
+        package_collection.insert_one(
+            data
+        )
+        # Returns a response to state that the package has
+        # successfully been added to the database, with a 
+        # status code of 201.
+        return make_response (jsonify({'message': 'Package has successfully been added to the database.'}), 201)
+    # Else statement to make a response stating there was an error
+    # with adding the package to the database, and that the user
+    # should verify that all information is present and valid with
+    # a status code of 401.
+    else:
+        return make_response (jsonify({'error': 'Package information is invalid or missing. Please try again.'}), 400)
+
 # --- Editing Existing Vulnerabilities/Packages API route. ---
 @app.route("/api/packages/<string:id>", methods = ['PUT'])
 @administrator_required

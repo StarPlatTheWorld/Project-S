@@ -1,35 +1,42 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { AppComponent } from '../app.component';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-index',
   standalone: true,
-  imports: [AppComponent, RouterLink, RouterOutlet, RouterLinkActive],
+  imports: [AppComponent, RouterLink, RouterOutlet, RouterLinkActive, ReactiveFormsModule, CommonModule],
   templateUrl: './index.component.html',
   styleUrl: './index.component.css'
 })
-export class IndexComponent {
-  // results: any;
-  // formData: FormData = new FormData();
+export class IndexComponent implements OnInit {
+  addPackageForm: FormGroup = new FormGroup({});
 
-  // constructor(private http: HttpClient) {}
+  constructor(private fb: FormBuilder,
+              public http: HttpClient
+  ){}
 
-  // onSelectedFile(event: any): void {
-  //   const file: File = event.target.files[0];
-  //   this.formData = new FormData();
-  //   this.formData.append('file', file, file.name);
-  // }
+  ngOnInit(): void {
+    this.addPackageForm = this.fb.group({
+      packageName: ['', Validators.required],
+      currentVer: ['', Validators.required],
+      threatLevel: ['', Validators.required],
+      vulnerableVersions: ['', Validators.required],
+      vulnerability: ['', Validators.required]
+    });
+  }
 
-  // uploadFile(): void {
-  //   this.http.post<any>('http://localhost:5000/api/upload', this.formData).subscribe(
-  //     (response) => {
-  //       this.results = response.results;
-  //     },
-  //     (error) => {
-  //       console.error('Error uploading file:', error)
-  //     }
-  //   );
-  // }
+  onSubmit() {
+      const packageData = this.addPackageForm.value;
+      const headers = new HttpHeaders().set('Content-Type', 'application/json');
+      this.http.post('http://localhost:5000/api/add_package', packageData, { headers }).subscribe({
+        next: (res) => console.log(res),
+        error: (err) => console.log(err),
+        complete: () => console.log('Package has been added successfully:', packageData)
+      }
+      );
+  }
 }

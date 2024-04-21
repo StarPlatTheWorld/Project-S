@@ -1,12 +1,30 @@
-<div class="container-fluid">
+<div class="container-fluid text-center">
     <div class="row">
         <div class="col-sm-4">
         </div>
         <div class="col-sm-4">
             <img src="assets/logo.png" class="centerLogo">
-            <p class="introText">Welcome to Project S</p>
+            <h1 class="introText">Welcome to Project S</h1>
+            <p>Project S is a Python & Angular based web application used to scan dependency files such as requirements.txt</p>
         </div>
         <div class="col-sm-4">
+        </div>
+    </div>
+</div>
+<br>
+<div class="container-fluid text-center">
+    <div class="row">
+        <div class="col-sm-12">
+            <h3>Add a Package!</h3>
+            <form [formGroup]="addPackageForm" (ngSubmit)="onSubmit()">
+                <input type="text" formControlName="packageName" placeholder="Bootstrap"><br>
+                <input type="text" formControlName="currentVer" placeholder="5.3.2"><br>
+                <input type="number" formControlName="threatLevel" placeholder="1" min="0" max="4"><br>
+                <input type="text" formControlName="vulnerableVersions" placeholder=" 4.3.1"><br>
+                <input type="text" formControlName="vulnerability" placeholder="Cross-site Scripting (XSS)"><br>
+                <br>
+                <button type="submit">Add Package</button>
+            </form>
         </div>
     </div>
 </div>
