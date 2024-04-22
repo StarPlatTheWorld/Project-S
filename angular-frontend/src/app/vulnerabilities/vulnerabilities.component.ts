@@ -23,4 +23,19 @@ export class VulnerabilitiesComponent {
       this.packages = data;
     });
   }
+
+  mappingThreats: { [key: number]: { label: string, color: string } } = {
+    1: { label: 'Low', color: '#198313'},
+    2: { label: 'Moderate', color: '#d68100'},
+    3: { label: 'Severe', color: '#cc4f19'},
+    4: { label: 'Critical', color: '#ad1a1a'}
+  };
+
+  ThreatLevel(threatLevel: number): string {
+    return this.mappingThreats[threatLevel] ? this.mappingThreats[threatLevel].label : 'Unknown';
+  }
+
+  ThreatLevelColor(threatLevel: number): string {
+    return this.mappingThreats[threatLevel] ? this.mappingThreats[threatLevel].color : 'black';
+  }
 }

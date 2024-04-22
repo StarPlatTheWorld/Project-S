@@ -1,7 +1,25 @@
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-sm-12">
-            
+<div class="container-fluid text-center" id="package-container">
+    <div class="row align-items-start">
+        <div class="col-sm-12 mt-4">
+            <h1>Scan Results</h1>
+        </div>
+        <div class="col-sm-12 mt-2">
+            <h3>Project S found the following packages within your requirements.txt file. Please review the information provided.</h3>
+        </div>
+        <div class="col-sm-4">
+        </div>
+        <div class="col-sm-4">
+            @for (matchedPackage of matchedPackages; track matchedPackage.packageName){
+                <p> Package: {{ matchedPackage.packageName }} - Your Version: {{ matchedPackage.currentVer }} <br>
+                Vulnerable Versions: {{ matchedPackage.vulnerableVersions }} <br>
+                Vulnerability: {{ matchedPackage.vulnerability }} <br>
+                Threat Level: {{ mappingThreats[matchedPackage.threatLevel] }}
+            </p>
+            } @empty {
+                <li>There are no current matched packages available</li>
+            }
+        </div>
+        <div class="col-sm-4">
         </div>
     </div>
-</div>  
+</div>
