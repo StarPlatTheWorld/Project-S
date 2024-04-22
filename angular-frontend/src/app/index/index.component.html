@@ -17,13 +17,13 @@
         <div class="col-sm-12">
             <h3>Add a Package!</h3>
             <form [formGroup]="addPackageForm" (ngSubmit)="onSubmit()">
-                <input type="text" formControlName="packageName" placeholder="Bootstrap"><br>
-                <input type="text" formControlName="currentVer" placeholder="5.3.2"><br>
-                <input type="number" formControlName="threatLevel" placeholder="1" min="0" max="4"><br>
-                <input type="text" formControlName="vulnerableVersions" placeholder=" 4.3.1"><br>
-                <input type="text" formControlName="vulnerability" placeholder="Cross-site Scripting (XSS)"><br>
+                <input type="text" formControlName="packageName" placeholder="Bootstrap" required><br>
+                <input type="text" formControlName="currentVer" placeholder="5.3.2" required><br>
+                <input type="number" formControlName="threatLevel" placeholder="1" min="0" max="4" required><br>
+                <input type="text" formControlName="vulnerableVersions" placeholder=" 4.3.1" required><br>
+                <input type="text" formControlName="vulnerability" placeholder="Cross-site Scripting (XSS)" required><br>
                 <br>
-                <button type="submit">Add Package</button>
+                <button type="submit" [disabled]="!addPackageForm">Add Package</button>
             </form>
         </div>
     </div>

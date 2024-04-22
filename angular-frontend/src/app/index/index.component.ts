@@ -32,11 +32,16 @@ export class IndexComponent implements OnInit {
   onSubmit() {
       const packageData = this.addPackageForm.value;
       const headers = new HttpHeaders().set('Content-Type', 'application/json');
-      this.http.post('http://localhost:5000/api/add_package', packageData, { headers }).subscribe({
+      if (this.addPackageForm.valid){
+        this.http.post('http://localhost:5000/api/add_package', packageData, { headers }).subscribe({
         next: (res) => console.log(res),
-        error: (err) => console.log(err),
-        complete: () => console.log('Package has been added successfully:', packageData)
+        error: (err) => alert(err),
+        complete: () => alert('Package has been added successfully')
       }
       );
+      this.addPackageForm.reset();
+      } else {
+        alert('Please ensure all form fields are filled out.')
+      }
   }
 }
