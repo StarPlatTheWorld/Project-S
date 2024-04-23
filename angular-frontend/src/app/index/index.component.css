@@ -8,3 +8,14 @@
     width: 5rem;
     height: 5rem;
 }
+
+.form-control{
+    width: inherit;
+    margin: auto ;
+}
+
+.btn-primary {
+    background-color: #BDE3FF;
+    color: black;
+    border-color: #95b3c9;
+}
