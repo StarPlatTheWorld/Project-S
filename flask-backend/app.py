@@ -180,6 +180,7 @@ def upload_file():
     if file:
         filename = secure_filename(file.filename)
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        # Everything from the line 170 to 182 is the standard way of saving an uploaded file to a local folder through Flask. This can be found on the official Flask documentation page under the category 'Uploading Files'.
         with open(os.path.join(app.config['UPLOAD_FOLDER'], filename)) as f:
             # Creates an empty list array and assigns it to the variable packages.
             packages = []
